@@ -1,4 +1,4 @@
-# karmalab_assignment
+# Test project
 
 A new Flutter project.
 
