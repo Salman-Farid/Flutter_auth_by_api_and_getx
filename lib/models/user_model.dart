@@ -43,28 +43,61 @@ class User {
     this.otherPermissions, // Initialize in constructor
   });
 
+
+
+
   factory User.fromJson(Map<String, dynamic> json) => User(
     avatar: Avatar.fromJson(json["avatar"]).secureUrl,
-    location: Location.fromJson(json["location"]),
+    location: json["location"] != null ? Location.fromJson(json["location"]) : null,
     id: json["_id"],
     name: json["name"],
     email: json["email"],
     password: json["password"],
     role: json["role"],
-    isActive: json["isActive"],
-    isVerified: json["isVerified"],
-    phone: json["phone"],
-    gender: json["gender"],
+    isActive: json["isActive"] ?? false,
+    isVerified: json["isVerified"] ?? false,
+    phone: json["phone"] ?? '',
+    gender: json["gender"], // If 'gender' is optional, you can leave it as is.
     likes: json["likes"] != null
         ? List<dynamic>.from(json["likes"].map((x) => x))
-        : null,
-    createdAt: DateTime.parse(json["createdAt"]),
-    updatedAt: DateTime.parse(json["updatedAt"]),
+        : [],
+    createdAt: json["createdAt"] != null ? DateTime.parse(json["createdAt"]) : null,
+    updatedAt: json["updatedAt"] != null ? DateTime.parse(json["updatedAt"]) : null,
     v: json["__v"],
     otherPermissions: json["otherPermissions"] != null
         ? OtherPermissions.fromJson(json["otherPermissions"])
-        : null, // Parse otherPermissions
+        : null,
   );
+
+
+
+
+
+
+
+
+  // factory User.fromJson(Map<String, dynamic> json) => User(
+  //   avatar: Avatar.fromJson(json["avatar"]).secureUrl,
+  //   location: Location.fromJson(json["location"]),
+  //   id: json["_id"],
+  //   name: json["name"],
+  //   email: json["email"],
+  //   password: json["password"],
+  //   role: json["role"],
+  //   isActive: json["isActive"],
+  //   isVerified: json["isVerified"],
+  //   phone: json["phone"],
+  //   gender: json["gender"],
+  //   likes: json["likes"] != null
+  //       ? List<dynamic>.from(json["likes"].map((x) => x))
+  //       : null,
+  //   createdAt: DateTime.parse(json["createdAt"]),
+  //   updatedAt: DateTime.parse(json["updatedAt"]),
+  //   v: json["__v"],
+  //   otherPermissions: json["otherPermissions"] != null
+  //       ? OtherPermissions.fromJson(json["otherPermissions"])
+  //       : null, // Parse otherPermissions
+  // );
 
   Map<String, dynamic> toJson() => {
     "avatar": avatar,

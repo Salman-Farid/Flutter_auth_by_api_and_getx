@@ -1,9 +1,11 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:karmalab_assignment/services/auth_service.dart';
 import 'package:karmalab_assignment/services/base/app_exceptions.dart';
+import 'package:mime/mime.dart';
 
 import '../models/user_model.dart';
 
@@ -16,6 +18,7 @@ class SignUpController extends GetxController {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _conformPasswordController = TextEditingController();
   final _avatarBase64 = ''.obs; // Observable for the avatar in base64 format
+  var type = ''.obs;
 
   final _loading = false.obs;
 
@@ -46,6 +49,7 @@ class SignUpController extends GetxController {
   TextEditingController get conformPasswordController => _conformPasswordController;
   bool get loading => _loading.value;
   String get avatarBase64 => _avatarBase64.value;
+  String get Type => type.value;
 
   bool validate() {
     bool emailValid = RegExp(
@@ -80,54 +84,41 @@ class SignUpController extends GetxController {
     }
   }
 
+  // Future<void> pickAvatarImage() async {
+  //   final picker = ImagePicker();
+  //   final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+  //   //final fileName = pickedFile!.path;
+  //   type.value = ".${pickedFile!.split('.').last}".toLowerCase();
+  //
+  //   if (pickedFile != null) {
+  //     final bytes = await pickedFile.readAsBytes();
+  //     _avatarBase64.value = base64Encode(bytes);
+  //   } else {
+  //     throw InvalidException("No image selected!", false);
+  //   }
+  // }
+
+
+
   Future<void> pickAvatarImage() async {
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
 
     if (pickedFile != null) {
-      final bytes = await pickedFile.readAsBytes();
+      final filePath = pickedFile.path;
+      final fileExtension = filePath.split('.').last.toLowerCase();
+      type.value = fileExtension; // Ensure no dot
+
+      final file = File(filePath);
+      final fileSize = await file.length(); // Get file size in bytes
+
+      // Check if file size is greater than 2 MB (2 * 1024 * 1024 bytes)
+      if (fileSize > 2 * 1024 * 1024) throw InvalidException("File size exceeds 2 MB! Please select a smaller image.", false);
+      final bytes = await file.readAsBytes();
       _avatarBase64.value = base64Encode(bytes);
-    } else {
-      throw InvalidException("No image selected!", false);
     }
+    else throw InvalidException("No image selected!", false);
   }
-
-  // Future<void> register(Function(bool, {String? errorMessage}) success) async {
-  //   final valid = validate();
-  //   if (valid) {
-  //     _loading.value = true;
-  //     try {
-  //       await Future.delayed(const Duration(seconds: 2));
-  //
-  //       // Create a User object
-  //       User user = User(
-  //         id: '', // Placeholder, will be filled by backend
-  //         name: _nameTextController.text,
-  //         email: _emailController.text,
-  //         password: _passwordController.text,
-  //         confirmPassword: _conformPasswordController.text,
-  //         avatar: "data:image/png;base64,$avatarBase64",
-  //         otherPermissions: OtherPermissions(),
-  //       );
-  //
-  //       // Register method
-  //       bool status = await _authService.register(user.toJson());
-  //       _loading.value = false;
-  //
-  //       // Invoke success callback with status and optional error message
-  //       success(status, errorMessage: status ? null : 'Failed to register user.');
-  //     } catch (e) {
-  //       _loading.value = false;
-  //
-  //       // Invoke success callback with false status and the error message
-  //       success(false, errorMessage: e.toString());
-  //     } finally {
-  //       await Future.delayed(const Duration(milliseconds: 300));
-  //     }
-  //   }
-  // }
-  //
-
 
 
   Future<void> register(Function(User?, {String? errorMessage})? onRegister) async {
@@ -136,14 +127,13 @@ class SignUpController extends GetxController {
       _loading.value = true;
       try {
         await Future.delayed(const Duration(seconds: 2));
-
         // Create a User object
         User user = User(
           name: _nameTextController.text,
           email: _emailController.text,
           password: _passwordController.text,
           confirmPassword: _conformPasswordController.text,
-          avatar: "data:image/png;base64,$avatarBase64",
+          avatar: "data:image/$type;base64,$avatarBase64",
           otherPermissions: OtherPermissions(),
         );
 

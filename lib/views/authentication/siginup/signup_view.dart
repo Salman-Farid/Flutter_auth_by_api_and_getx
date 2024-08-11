@@ -16,6 +16,7 @@ import 'package:karmalab_assignment/widgets/fancy2_text.dart';
 import 'package:karmalab_assignment/widgets/social_media_log.dart';
 
 import '../../../models/user_model.dart';
+import '../../../services/base/app_exceptions.dart';
 
 class SignUpView extends StatelessWidget {
   static const routeName = '/sign-up';
@@ -40,7 +41,21 @@ class SignUpView extends StatelessWidget {
                 children: [
                   const SizedBox(height: 16),
                   GestureDetector(
-                    onTap: () => _signUpController.pickAvatarImage(),
+                    onTap: () async {
+                      try {
+                        await _signUpController.pickAvatarImage();
+                        // Optionally show a success message or update the UI
+                        Get.snackbar("Success", "Avatar image selected successfully.");
+                      } catch (e) {
+                        if (e is InvalidException) {
+                          // Handle the specific exception and show the error message
+                          Get.snackbar("Error", e.message ?? "An error occurred while picking the image.");
+                        } else {
+                          // Handle any other unexpected errors
+                          Get.snackbar("Error", "An unexpected error occurred.");
+                        }
+                      }
+                    },
                     child: Obx(() => _signUpController.avatarBase64.isEmpty
                         ? Container(
                             height: 100,
