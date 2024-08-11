@@ -15,6 +15,7 @@ import 'package:karmalab_assignment/widgets/custom_button.dart';
 import 'package:karmalab_assignment/widgets/fancy2_text.dart';
 import 'package:karmalab_assignment/widgets/social_media_log.dart';
 
+import '../../../controllers/image_controller.dart';
 import '../../../models/user_model.dart';
 import '../../../services/base/app_exceptions.dart';
 
@@ -22,6 +23,8 @@ class SignUpView extends StatelessWidget {
   static const routeName = '/sign-up';
 
   final SignUpController _signUpController = Get.put(SignUpController());
+  final imageController = Get.put(ImageController());
+
   SignUpView({super.key});
 
   @override
@@ -37,26 +40,32 @@ class SignUpView extends StatelessWidget {
             ),
             child: SingleChildScrollView(
               child: Column(
+
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   const SizedBox(height: 16),
                   GestureDetector(
                     onTap: () async {
                       try {
-                        await _signUpController.pickAvatarImage();
+                        await imageController.imagePickerAndBase64Conversion();
                         // Optionally show a success message or update the UI
-                        Get.snackbar("Success", "Avatar image selected successfully.");
+                        Get.snackbar(
+                            "Success", "Avatar image selected successfully.");
                       } catch (e) {
                         if (e is InvalidException) {
                           // Handle the specific exception and show the error message
-                          Get.snackbar("Error", e.message ?? "An error occurred while picking the image.");
+                          Get.snackbar(
+                              "Error",
+                              e.message ??
+                                  "An error occurred while picking the image.");
                         } else {
                           // Handle any other unexpected errors
-                          Get.snackbar("Error", "An unexpected error occurred.");
+                          Get.snackbar(
+                              "Error", "An unexpected error occurred.");
                         }
                       }
                     },
-                    child: Obx(() => _signUpController.avatarBase64.isEmpty
+                    child: Obx(() => imageController.imageBase64.isEmpty
                         ? Container(
                             height: 100,
                             width: 100,
@@ -66,10 +75,11 @@ class SignUpView extends StatelessWidget {
                             ),
                             child: const Icon(Icons.add_a_photo),
                           )
+
                         : CircleAvatar(
                             radius: 50,
                             backgroundImage: MemoryImage(
-                                base64Decode(_signUpController.avatarBase64)),
+                                base64Decode(imageController.imageBase64.split(',').last)),
                           )),
                   ),
                   context.spacing(height: 2),
@@ -78,6 +88,7 @@ class SignUpView extends StatelessWidget {
                     title: "Sign Up",
                   ),
                   const SizedBox(height: 25),
+
                   signUpForm(_signUpController),
                   const SizedBox(height: 5),
                   Obx(() {
@@ -86,57 +97,27 @@ class SignUpView extends StatelessWidget {
                       isLoading: _signUpController.loading,
                       onTap: () async {
                         try {
-                          await _signUpController.register((User? user, {String? errorMessage}) {
+                          await _signUpController
+                              .register((User? user, {String? errorMessage}) {
                             if (user != null) {
                               Get.offNamedUntil(
                                 HomeView.routeName,
-                                    (_) => false,
+                                (_) => false,
                               );
                             } else {
-                              DialogHelper.showSnackBar(description: 'Register failed!!! $errorMessage ');
+                              DialogHelper.showSnackBar(
+                                  description:
+                                      'Register failed!!! $errorMessage ');
                             }
                           });
                         } catch (e) {
-                          DialogHelper.showSnackBar(description: 'An unexpected error occurred: ${e.toString()}');
+                          DialogHelper.showSnackBar(
+                              description:
+                                  'An unexpected error occurred: ${e.toString()}');
                         }
                       },
                     );
                   }),
-
-
-
-                  // Obx(() {
-                  //   return CustomButton(
-                  //       label: "Sign Up",
-                  //       isLoading: _signUpController.loading,
-                  //       onTap: () async {
-                  //         await _signUpController.register(
-                  //           (status, {String? errorMessage}) async {
-                  //             try {
-                  //               if (status) {
-                  //                 // If sign-up is successful, navigate to the login page
-                  //                 await Navigator.pushNamed(
-                  //                   context,
-                  //                   LoginView.routeName,
-                  //                 );
-                  //               } else {
-                  //                 // If sign-up failed, show the actual error message
-                  //                 DialogHelper.showSnackBar(
-                  //                   description: errorMessage ??
-                  //                       'An unexpected error occurred',
-                  //                 );
-                  //               }
-                  //             } catch (error) {
-                  //               // Handle any errors that occur during the navigation or sign-up process
-                  //               DialogHelper.showSnackBar(
-                  //                 description:
-                  //                     'An unexpected error occurred: $error',
-                  //               );
-                  //             }
-                  //           },
-                  //         );
-                  //       });
-                  // }),
                   const SizedBox(height: 5),
                   Fancy2Text(
                     first: "Already have an account? ",

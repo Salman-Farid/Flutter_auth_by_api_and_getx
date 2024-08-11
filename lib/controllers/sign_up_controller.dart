@@ -8,16 +8,20 @@ import 'package:karmalab_assignment/services/base/app_exceptions.dart';
 import 'package:mime/mime.dart';
 
 import '../models/user_model.dart';
+import 'image_controller.dart';
 
 class SignUpController extends GetxController {
+  final imageController = Get.put(ImageController());
+
   final AuthService _authService = AuthService();
 
   // Controllers
   final TextEditingController _nameTextController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _conformPasswordController = TextEditingController();
-  final _avatarBase64 = ''.obs; // Observable for the avatar in base64 format
+  final TextEditingController _conformPasswordController =
+      TextEditingController();
+
   var type = ''.obs;
 
   final _loading = false.obs;
@@ -26,13 +30,11 @@ class SignUpController extends GetxController {
   void togglePasswordVisibility() {
     isPasswordVisible.value = !isPasswordVisible.value;
   }
+
   var isConformPasswordVisible = false.obs;
   void toggleConformPasswordVisibility() {
     isConformPasswordVisible.value = !isConformPasswordVisible.value;
   }
-
-
-
 
   @override
   void dispose() {
@@ -46,14 +48,17 @@ class SignUpController extends GetxController {
   TextEditingController get nameTextController => _nameTextController;
   TextEditingController get emailController => _emailController;
   TextEditingController get passwordController => _passwordController;
-  TextEditingController get conformPasswordController => _conformPasswordController;
+  TextEditingController get conformPasswordController =>
+      _conformPasswordController;
+
   bool get loading => _loading.value;
-  String get avatarBase64 => _avatarBase64.value;
   String get Type => type.value;
 
   bool validate() {
+    String ImageBase64 = imageController.imageBase64;
+
     bool emailValid = RegExp(
-        r"^[a-zA-Z0-9.a-zA-Z0-9!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
+            r"^[a-zA-Z0-9.a-zA-Z0-9!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
         .hasMatch(_emailController.text);
 
     try {
@@ -61,9 +66,9 @@ class SignUpController extends GetxController {
           _emailController.text == "" ||
           passwordController.text == "" ||
           _conformPasswordController.text == "" ||
-          _avatarBase64.value==null
-      ) {
-        throw InvalidException("Please fill all the fields and upload an avatar image!", false);
+          ImageBase64 == null) {
+        throw InvalidException(
+            "Please fill all the fields and upload an avatar image!", false);
       } else {
         if (emailValid) {
           if (passwordController.text.length >= 8) {
@@ -73,7 +78,8 @@ class SignUpController extends GetxController {
               throw InvalidException("Passwords do not match!", false);
             }
           } else {
-            throw InvalidException("Password must be at least 8 characters long!", false);
+            throw InvalidException(
+                "Password must be at least 8 characters long!", false);
           }
         } else {
           throw InvalidException("Email is not valid!", false);
@@ -84,44 +90,34 @@ class SignUpController extends GetxController {
     }
   }
 
+  //
   // Future<void> pickAvatarImage() async {
   //   final picker = ImagePicker();
   //   final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-  //   //final fileName = pickedFile!.path;
-  //   type.value = ".${pickedFile!.split('.').last}".toLowerCase();
   //
   //   if (pickedFile != null) {
-  //     final bytes = await pickedFile.readAsBytes();
+  //     final filePath = pickedFile.path;
+  //     final fileExtension = filePath.split('.').last.toLowerCase();
+  //     type.value = fileExtension; // Ensure no dot
+  //
+  //     final file = File(filePath);
+  //     final fileSize = await file.length(); // Get file size in bytes
+  //
+  //     // Check if file size is greater than 2 MB (2 * 1024 * 1024 bytes)
+  //     if (fileSize > 2 * 1024 * 1024) throw InvalidException("File size exceeds 2 MB! Please select a smaller image.", false);
+  //     final bytes = await file.readAsBytes();
   //     _avatarBase64.value = base64Encode(bytes);
-  //   } else {
+  //   }
+  //   else {
   //     throw InvalidException("No image selected!", false);
   //   }
   // }
+  //
 
+  Future<void> register(
+      Function(User?, {String? errorMessage})? onRegister) async {
+    String ImageBase64 = imageController.imageBase64;
 
-
-  Future<void> pickAvatarImage() async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-
-    if (pickedFile != null) {
-      final filePath = pickedFile.path;
-      final fileExtension = filePath.split('.').last.toLowerCase();
-      type.value = fileExtension; // Ensure no dot
-
-      final file = File(filePath);
-      final fileSize = await file.length(); // Get file size in bytes
-
-      // Check if file size is greater than 2 MB (2 * 1024 * 1024 bytes)
-      if (fileSize > 2 * 1024 * 1024) throw InvalidException("File size exceeds 2 MB! Please select a smaller image.", false);
-      final bytes = await file.readAsBytes();
-      _avatarBase64.value = base64Encode(bytes);
-    }
-    else throw InvalidException("No image selected!", false);
-  }
-
-
-  Future<void> register(Function(User?, {String? errorMessage})? onRegister) async {
     final valid = validate();
     if (valid) {
       _loading.value = true;
@@ -133,7 +129,7 @@ class SignUpController extends GetxController {
           email: _emailController.text,
           password: _passwordController.text,
           confirmPassword: _conformPasswordController.text,
-          avatar: "data:image/$type;base64,$avatarBase64",
+          avatar: ImageBase64,
           otherPermissions: OtherPermissions(),
         );
 
@@ -155,8 +151,4 @@ class SignUpController extends GetxController {
       }
     }
   }
-
-
-
-
 }

@@ -69,26 +69,6 @@ class AuthService extends BaseController {
 
 
 
-  // Future<User?> login(dynamic object) async {
-  //   try {
-  //     var response = await _baseClient.post(
-  //       NetworkConstants.loginAPI,
-  //       object,
-  //       header: {'Content-Type': "application/json"},
-  //     ).catchError(handleError);
-  //
-  //     if (response != null && response.containsKey('data')) {
-  //       var data = response['data'];
-  //       User fetchedUser = userFromJson(jsonEncode(data));
-  //       userController.setUser(fetchedUser);
-  //       return fetchedUser;
-  //     }
-  //   } catch (e) {
-  //     print('Error during login: $e');
-  //   }
-  //   return null;
-  // }
-  //
 
 
 
